@@ -26,7 +26,7 @@
         - parent state
         - action (从parent state 到 当前state的操作)
         - cost(从初始状态到当前状态的cost)
-## frontier(可以理解容器吧 可以是stack\queue\priority_queue)
+### frontier(可以理解容器吧 可以是stack\queue\priority_queue)
 Repeat:
     1.If the frontier is empty, 
         Stop. There is no solution to the problem
@@ -49,5 +49,40 @@ Repeat:
     frontier --- queue
 - Cons:
     - 可以找到最优解 但耗时过长
-### GBFS
-    
+
+### uninformed search / informed search
+- uninformed search: 不考虑问题的结构 总之就是不给出针对性的求解方式 例如 DFS/BFS 在二维 三维空间的求解方式基本是一致的可以套用
+- informed search: (启发式搜索 中文好像是这个译名)更加智能 针对问题提出更针对性的解 
+- 
+
+### GBFS(Greedy Best-First Search)
+    每次扩展 它认为最接近目标节点的点(这与DFS还有BFS是不同 这两个虽然也可以在扩展时加入条件判断 但其实就是向深处和周围扩展)    
+    至于 如何知道当前是否最接近目标节点 则需要Heuristic function h(n) (启发函数) 评估当前点到目标的距离
+以Brian Yu课堂上的例子则 取h(n)为每个点目标点的曼哈顿距离 GBFS每次进行扩展时 根据h(n)的最优值进行扩展
+但GBFS 并不能总是选取最优解 关键原因就是GBFS的只针对当前情况做出最优解
+
+### A* search
+    GBFS的问题在于 h(n)指计算当前节点到目标点的曼哈顿距离 但忽视从走到当前节点所需的花费 
+    所以 引入g(n) 表示到当前节点花费
+    因此A* search 每次扩展节点的策略为 根据h(n)+g(n)的最优解进行选择
+    当h(n)所计算的估值是准确的(admissible) 且每个节点为连续时(consistent) 可确保A* search获取的是最优解
+
+## Adversarial Search
+    上述的搜索均为只有一个agent情况上的搜索(就是只为一个实体寻找从一个点到另一个点的距离)
+    当有多个agent时 则引入一种新概念 Adversarial Search(对抗搜索)
+
+### MiniMax
+Max(X) aims to maximize score 
+MIN(O) aims to minimize score
+将游戏结果以及过程转换计算机所理解的数值的形式 数值增大 以及 数值减小
+
+#### tic-tac-toe game
+    以tic-tac-toe(井字棋 两个agent o 和 x) 为例子
+    1.数字化(将游戏结果转化为计算机可以理解的语言) -1 0 1 分别表示 o赢 平局 x赢
+    2.游戏状态定义
+    S0: 在tic-tac-toe中初始状态定义为棋盘
+    PLAYERS(s): 用于判现在是谁的回合
+    ACTIONS(s): 返回当前状态可以进行的移动
+    RESULT(s):  状态转换模型 返回产生移动后的结果   相当于告诉AI 当前游戏的运行规则
+    TERMINNAL(s): 类似于goal test 判断此刻状态是否为最终状态    相当于告诉AI游戏 何时结束
+    UTILITY(s): 转换最终状态的结果值 判断实际的游戏结果(因为已经将结果数字化为 -1 0 1 所以最后还要再转换一下将其返回)
