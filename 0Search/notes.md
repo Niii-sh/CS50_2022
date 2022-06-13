@@ -76,6 +76,7 @@ Max(X) aims to maximize score
 MIN(O) aims to minimize score
 将游戏结果以及过程转换计算机所理解的数值的形式 数值增大 以及 数值减小
 
+
 #### tic-tac-toe game
     以tic-tac-toe(井字棋 两个agent o 和 x) 为例子
     1.数字化(将游戏结果转化为计算机可以理解的语言) -1 0 1 分别表示 o赢 平局 x赢
@@ -86,3 +87,28 @@ MIN(O) aims to minimize score
     RESULT(s):  状态转换模型 返回产生移动后的结果   相当于告诉AI 当前游戏的运行规则
     TERMINNAL(s): 类似于goal test 判断此刻状态是否为最终状态    相当于告诉AI游戏 何时结束
     UTILITY(s): 转换最终状态的结果值 判断实际的游戏结果(因为已经将结果数字化为 -1 0 1 所以最后还要再转换一下将其返回)
+
+Given a state x:
+- MAX picks action a in ACTION(s) that produces highest value of MIN-VALUE(RESULT(s,a))
+- MIN picks action a in ACTION(s)  that produces smallest value of MAX-VALUE(RESULT(s,a))
+- 将比分做多者 从当前可以选取的移动中选取可以使得MIN-VALUE值最大的那一步 将比分做少者同理
+
+function MAX-VALUE(state):      # 用于获取
+    if TERMINAL(state)
+        return UTILITY(state)   # 如果游戏已经结束 则直接通过UTILITY函数获取当前状态值
+    v = -∞
+    for action in Action(state):
+    v = MAX(v,MAX-VALUE(RESULT(action,state)))  # 遍历每一种可能的状态 获取可获得的最大值 可以通过剪枝进行优化
+    return v
+
+### Alpha-Beta Pruning
+其实就对搜索过程进行剪枝优化的算法
+
+### Depth-Limited Minimax
+对搜索过程的进一步优化 简单来说就是搜索到一定程度就及时回头 不再继续往下搜索
+
+#### evaluation function
+评估当前状态的函数 引入评估函数的是 在实际应用中比如井字棋 这过程中需要计算的中间状态是非常多 不可能全部进行 则需要评估函数判断哪些状态更可能赢
+(比如在井字棋游戏中 如果状态1表示赢 那么对于游戏过程中的状态存在0.8 0.9 0.99 这些中间状态可以评估哪些状态更可能赢)
+而这个评估函数的优秀程度 其实也就相当于AI的优秀程度
+评估函数越优秀 则AI在游戏中的表现肯定是越优秀的
