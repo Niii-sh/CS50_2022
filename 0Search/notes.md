@@ -27,6 +27,8 @@
         - action (从parent state 到 当前state的操作)
         - cost(从初始状态到当前状态的cost)
 ### frontier(可以理解容器吧 可以是stack\queue\priority_queue)
+
+```
 Repeat:
     1.If the frontier is empty, 
         Stop. There is no solution to the problem
@@ -40,6 +42,8 @@ Repeat:
     从frontier中取出将要被considered的结点
     consider:
         包含目标状态 返回solution 否则 扩展节点 将当前节点加入explored的集合(就是判重数组)
+```
+
 ### DFS
     frontier --- stack
 - Cons:
@@ -93,6 +97,7 @@ Given a state x:
 - MIN picks action a in ACTION(s)  that produces smallest value of MAX-VALUE(RESULT(s,a))
 - 将比分做多者 从当前可以选取的移动中选取可以使得MIN-VALUE值最大的那一步 将比分做少者同理
 
+```
 function MAX-VALUE(state):      # 用于获取
     if TERMINAL(state)
         return UTILITY(state)   # 如果游戏已经结束 则直接通过UTILITY函数获取当前状态值
@@ -100,6 +105,7 @@ function MAX-VALUE(state):      # 用于获取
     for action in Action(state):
     v = MAX(v,MAX-VALUE(RESULT(action,state)))  # 遍历每一种可能的状态 获取可获得的最大值 可以通过剪枝进行优化
     return v
+```
 
 ### Alpha-Beta Pruning
 其实就对搜索过程进行剪枝优化的算法
