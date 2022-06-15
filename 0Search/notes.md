@@ -103,7 +103,7 @@ function MAX-VALUE(state):      # 用于获取
         return UTILITY(state)   # 如果游戏已经结束 则直接通过UTILITY函数获取当前状态值
     v = -∞
     for action in Action(state):
-    v = MAX(v,MAX-VALUE(RESULT(action,state)))  # 遍历每一种可能的状态 获取可获得的最大值 可以通过剪枝进行优化
+    v = MAX(v,MIN-VALUE(RESULT(action,state)))  # 遍历每一种可能的状态 获取可获得的最大值 可以通过剪枝进行优化
     return v
 ```
 
