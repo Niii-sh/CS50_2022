@@ -113,12 +113,26 @@ def check_all(knowledge, query, symbols, model):
 
 ## Knowledge and Search Problems
     从搜索算法的角度来演示这个推理的过程
+- Initial state: starting knowledge base
+- Actions: inference rules
+- Transition: new knowledge base after inference
+- Goal test: checking whether the statement that we are trying to prove is in the KB
+- Path cost function: the number of steps in the proof 
 
-```
+## Resolution
+    Resolution is a powerful inference rule that states that if one of two atomic proposutions in an Or proposition is false, the other has to be true
+    其实就是inference rule中的一种 不过比较重要就单列出来了
+    总的来说 就是在一个 or 连接的命题中 其中一个为 false 则另外一个一定是 true
+其实实际操作起来 就是反证法 想要证明是一个命题true 则先假设其为false 然后证出矛盾 从而证明命题为true
+
+## First Order Logic
+    这之前的都是属于 Propositional Logic, 在Propositional Logic中 每一种Symbol 只能是true 或 false 、
+    这样存在的问题是 过于冗余 
+First Order Logic 只有两种 Symbol:
+- Constant Symbol: 表示object(就是用来代表实体)
+- Predicate Symbol:  可以视作一种relation (差不多就是函数 由特定输入 可以 产生输出)
 
 
-
-```
 
 
 
