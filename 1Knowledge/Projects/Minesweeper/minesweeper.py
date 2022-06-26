@@ -1,3 +1,4 @@
+import copy
 import itertools
 import random
 
@@ -112,7 +113,7 @@ class Sentence():
         if len(self.cells) == self.count:
             return set(self.cells)
 
-        raise set()
+        return set()
 
     def known_safes(self):
         """
@@ -123,7 +124,7 @@ class Sentence():
         if self.count == 0:
             return set(self.cells)
 
-        raise set()
+        return set()
 
     def mark_mine(self, cell):
         """
@@ -138,7 +139,7 @@ class Sentence():
             # 将其从集合中去除 已经是雷了
             self.cells.remove(cell)
             # count = 1 即标记为雷 因为count记录的是集合内雷的数量
-            self.count = 1
+            self.count -= 1
 
     def mark_safe(self, cell):
         """
@@ -150,7 +151,6 @@ class Sentence():
 
         if cell in self.cells:
             self.cells.remove(cell)
-            self.count = 0
 
 
 class MinesweeperAI():
@@ -194,7 +194,7 @@ class MinesweeperAI():
 
     def neighboring_cells(self, cell):
         """
-        额外添加 函数 用于计算 每个格子 周边的格子信息
+        额外添加 函数 用于计算 每个格子 周边的格子信息(包括是否已经计算过 是否安全 是否为雷)
         (因为这个操作会大量使用到)
         :param cell:
         :return:
@@ -232,7 +232,67 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
-        raise NotImplementedError
+
+        # 1
+        self.moves_made.add(cell)
+        # 2
+        self.safes.add(cell)
+        # 3
+        # 获取当前点周边的点 的信息 (cell and count)
+        neighbors = self.neighboring_cells(cell)[0]
+        detected_mines = self.neighboring_cells(cell)[1]
+        # 更新当前 点 目前仍需计算的mine
+        count -= detected_mines
+        # 根据 cell 和 count 创建新的sentence
+        new_sentence = Sentence(neighbors, count)
+        # 将新建的sentence 加入KB
+        if new_sentence not in self.knowledge:
+            self.knowledge.append(new_sentence)
+
+        # 4
+        # 遍历 KB中的 sentence 更新新加入的点的状态
+        for sentence in self.knowledge:
+            known_safes = sentence.known_safes()
+            for known_safe in known_safes:
+                self.mark_safe(known_safe)
+            known_mines = sentence.known_mines()
+            for known_mine in known_mines:
+                self.mark_mine(known_mine)
+
+        # 5
+        # 这步 就是根据项目分析中方法 通过 集合差的方式 产生新的sentence
+        # 新的集合 含有更小范围的cells 以及 相应的mine 数量
+        # 中间的步骤主要是判断 集合之间的大小关系
+        konwn_sentences = copy.deepcopy(self.knowledge)
+        for sentence1 in konwn_sentences:
+            konwn_sentences.remove(sentence1)
+            for sentence2 in konwn_sentences:
+                # 两个集合长度 则无需再缩小范围
+                if (len(sentence2.cells)) == (len(sentence1.cells)):
+                    continue
+                if len(sentence1.cells) != 0 and len(sentence2.cells) != 0:
+                    if len(sentence2.cells) < len(sentence1.cells):
+                        subset = sentence2.cells
+                        bigset = sentence1.cells
+                        diff_count = sentence1.count - sentence2.count
+                    elif len(sentence1.cells) < len(sentence2.cells):
+                        subset = sentence1.cells
+                        bigset = sentence2.cells
+                        diff_count = sentence2.count - sentence1.count
+                    if subset <= bigset:
+                        diff_set = bigset - subset
+                        # 如果此时新产生的集合只有一个点
+                        # 则可直接判断根据 count判断出其状态不需要再向下进行分割
+                        if len(diff_set) == 1:
+                            if diff_count == 0:
+                                new_safe = diff_set.pop()
+                                self.mark_safe(new_safe)
+                            elif diff_count == 1:
+                                new_mine = diff_set.pop()
+                                self.mark_mine(new_mine)
+                        else:
+                            # 否则 将其加入 KB 进行下一步的 分割判断
+                            self.knowledge.append(Sentence(diff_set, diff_count))
 
     def make_safe_move(self):
         """
@@ -243,7 +303,23 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        raise NotImplementedError
+
+        # 打印出当前已知的可移动的 且未移动过的 位置数
+        print(f'{len(self.safes - self.moves_made)} knwon unused safes')
+        # 打印出当前已经 发现的雷数
+        print(f'{len(self.mines)} detected mine:\n{list(self.mines)}')
+
+        # 在可移动的 位置进行遍历 进行移动
+        for move in self.safes:
+            # 如果当前位置 已经走过则跳过
+            if move in self.moves_made:
+                continue
+            else:
+                safe_move = move
+                # 加该位置 加入 已经移动的集合中 防止重复移动
+                self.moves_made.add(safe_move)
+                print(f'Move made {safe_move}')
+                return safe_move
 
     def make_random_move(self):
         """
@@ -251,5 +327,28 @@ class MinesweeperAI():
         Should choose randomly among cells that:
             1) have not already been chosen, and
             2) are not known to be mines
+
+        这个主要是用在 没有确定的safe_move 的时候
+        即随机产生一个移动位置 当然这也是有前提:
+        1. 该位置是没有移动过的
+        2、 改位置不能是 已确定为雷的位置
         """
-        raise NotImplementedError
+
+        potential_move = []
+
+        # 这里其实就比较简单了
+        # 主要遍历所有点 并且判断 这个点没有走过 且不是雷即可
+        for row in range(self.height):
+            for col in range(self.width):
+                if (row, col) not in self.moves_made and (row, col) not in self.mines:
+                    move = (row, col)
+                    potential_move.append(move)
+        # 没有任何 一个可以移动的位置 则游戏结束
+        if len(potential_move) == 0:
+            print(f'Game finished!')
+        else:
+            random_move = random.choice(potential_move)
+            # 将该点 标记 防止重复访问
+            self.moves_made.add(random_move)
+            print(f'Move made {random_move}')
+            return random_move
