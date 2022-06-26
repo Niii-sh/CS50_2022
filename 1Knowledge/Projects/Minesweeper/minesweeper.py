@@ -104,28 +104,53 @@ class Sentence():
     def known_mines(self):
         """
         Returns the set of all cells in self.cells known to be mines.
+
+        count 记录的是 为雷 的数量
+        所以 如果 cell == count 则恰好证明 该集合内全部为雷
         """
-        raise NotImplementedError
+
+        if len(self.cells) == self.count:
+            return set(self.cells)
+
+        raise set()
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
+
+        count 为雷的数量 count==0 则代表非雷 即代表安全 返回即可
         """
-        raise NotImplementedError
+        if self.count == 0:
+            return set(self.cells)
+
+        raise set()
 
     def mark_mine(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be a mine.
+
+        将已知 为雷的格子 更新为 雷
         """
-        raise NotImplementedError
+
+        # 如果该格子 在当前的集合中
+        if cell in self.cells:
+            # 将其从集合中去除 已经是雷了
+            self.cells.remove(cell)
+            # count = 1 即标记为雷 因为count记录的是集合内雷的数量
+            self.count = 1
 
     def mark_safe(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be safe.
+
+        与 mark_mine 同理
         """
-        raise NotImplementedError
+
+        if cell in self.cells:
+            self.cells.remove(cell)
+            self.count = 0
 
 
 class MinesweeperAI():
@@ -166,6 +191,31 @@ class MinesweeperAI():
         self.safes.add(cell)
         for sentence in self.knowledge:
             sentence.mark_safe(cell)
+
+    def neighboring_cells(self, cell):
+        """
+        额外添加 函数 用于计算 每个格子 周边的格子信息
+        (因为这个操作会大量使用到)
+        :param cell:
+        :return:
+        """
+        mines = 0
+        i, j = cell
+        neighbors = set()
+        # 每个 格子的周边 就是一个九宫格 所以 -1 +2
+        for row in range(i - 1, i + 2):
+            for col in range(j - 1, j + 2):
+                # 判断是否越界 判断该点是否已经被计算过(即已经处于 self.moves_made 集合中)
+                if ((0 <= col < self.width) and (0 < row < self.height)
+                        and ((row, col) != cell) and ((row, col) is not self.moves_made)):
+                    if (row, col) in self.mines:
+                        mines += 1
+                    elif (row, col) in self.safes:
+                        continue
+                    else:
+                        neighbors.add((row, col))
+
+        return neighbors, mines
 
     def add_knowledge(self, cell, count):
         """
