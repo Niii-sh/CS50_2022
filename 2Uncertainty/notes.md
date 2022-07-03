@@ -77,3 +77,53 @@
     然后重复这个过程 直到获取需要 计算出目标的所有值 从而求得最终解
     P(X  | e) = αP(X,e) = α∑P(X,e,y) (y遍历所有hidden varible的值) (α的意思 就是将计算出来的所有值 按比例调整为最终加和为1)
 看起来比较复杂 不过这些都有基本库 提供好了 实际操作起来 调用函数就完事了 
+
+## Sample
+    采样
+    就是在不知道概率的情况下 通过枚举的方式获得近似的概率(approximate inference) 
+### Likelihood Weighted
+    对样本加权
+    讨论 Sample 和 likehood 都是基于 Bayesian Network的基础上
+    X -> Y X发生的概率 越高 则Y 的权值越大
+```markdown
+- Start by fixing the values for evidence variables.
+- Sample the non-evidence variables using conditional probabilities in the Bayesian network. 
+- Weight each sample by its likelihood: the probability of all the evidence occurring.
+
+这个描述 也有些抽象 总的来说 是先对已知的evidence varibles进行赋值 
+有了E 的基础后 就可对未知变量即 non-evidence  使用条件概率进行采样
+然后根据样本发生的可能性对其赋权
+```
+
+## Markov Models
+    马尔可夫模型
+    之前讨论的概率情况都是在时间确定的情况下讨论的 即 X->Y->Z  Z所以依赖的是X,Y 即之前所有发生的事件(这是之前所讨论的情况)
+    但现实生活中 一些事件所发生的概率 只可能依赖之前有些的一些事件 (如: 1天前下雨可能会影响今天天气  但100年前下雨可能就没什么关联了)
+    事件只依赖之前所发生的有限事件 则为马尔可夫模型
+### Markov chains
+    (有些类似于状态机模型 当前状态取决之前的状态 由上一步的状态转移而来)
+
+
+### Hidden Markov Models
+    Markov Models的进一步升级
+#### Hidden state | Observation
+    Hidden state: 就是未知量 AI 所不知道的状态
+    Observation: 可观察到的信息
+    如果 屋内的AI 观察到屋内有许多把雨伞(Observartion) 可推测今天可能是下雨了(Hidden state) 
+    当然Observation还可能有很多 总之AI 会根据这些去推导最终结果
+所以Hidden Markov 就是拥有未知事件的Markov模型 而这些 hidden state 可以现有的Observation进行推导
+
+### Sensor Markov Assumption
+    简而言之 就是忽略掉一些必要考虑的情况的 Markov Model 
+    比如说 在之前的那个例子来公司带的人 可能是因为今天下雨了 也可能是因为某些人防患于未然 然而这种可能对于hidden state 天气的判断则影响较小了
+Based on hidden Markov models, multiple tasks can be achieved:
+- Filtering: given observations from start until now, calculate the probability distribution for the current state. 
+    就是可以通过给定的信息(从开始到目前为止) 推导出现在的情况
+- Prediction: given observations from start until now, calculate the probability distribution for a future state.
+    可以通过给定的信息 推导出未来的情况
+- Smoothing: given observations from start until now, calculate the probability distribution for a past state. 
+    可以通过给定的信息 推导过去的情况(比如知道了 今天和昨天都带了伞 今天下雨 推导昨天是否也下了雨)
+- Most likely explanation: given observations from start until now, calculate most likely sequence of events.
+    可以通过给定的信息 判断事件发生的顺序 比如 判断几句话 在通话中正确的顺序
+
+
