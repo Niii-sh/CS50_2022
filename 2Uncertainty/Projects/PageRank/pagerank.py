@@ -73,7 +73,43 @@ def transition_model(corpus, page, damping_factor):
     在 1-d 的情况 random surfer 在选择同一个corpus 下的page的概率时相同的
     当 当前页面没有其他可访问的链接时 返回 等概率下随机选择corpus的概率
     """
-    raise NotImplementedError
+
+    """
+    The transition_model should return a dictionary representing the probability distribution over 
+    which page a random surfer would visit next, given a corpus of pages, a current page, and a damping factor.
+    这句话 直接摘自specification (这里是用了一个状语后置 given a corpus of pages ...这些应该提到前面 很容易引起误解)
+    意思是说 再当前传入的corpus中的pages 和damping factor的情况下 返回一个表示random 下一个即将访问的page的概率分布
+    """
+
+    # 存放每一个 page 与之对应 概率 最后返回的也是这个东西
+    distribution = dict()
+
+    # 获取当前传入 语料(corpus)集合的page数量 之后遍历的时候要用到
+    num_pages = len(corpus)
+
+    # 获取当前page 链接到其他page的链接数
+    num_links = len(corpus[page])
+
+    # 接下来 就是用到那个公式 PR(p) = (1-d)/N + d ∑PR(i)/Numlinks(i)
+    # 如果当前page 没有链接到其他页面 那么 ∑ 这一块就没有了 其概率就是前面(1-d)/N 这一部分
+    if num_links == 0:
+        page_prob = (1-damping_factor)/num_pages
+        # 建立当前page 可能到达该corpus 中所有page的概率分布 (没有链接 视为到达其他任何page的概率相同)
+        for pageX in corpus:
+            distribution[pageX] = page_prob
+    else:
+        page_prob = (1-damping_factor)/num_links
+        # 根据公式 有链接情况下的 PR(i) 就是这个
+        link_prob = damping_factor/num_links + page_prob
+        for pageX in corpus:
+            # 如果该链接的页面 不在该corpus中 那么访问的概率为 1-d的那种情况 即page_prob
+            if pageX not in corpus:
+                distribution[pageX] = page_prob
+            # 否则为PR(i) 的情况
+            else:
+                distribution[pageX] = page_prob
+
+    return distribution
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -92,6 +128,9 @@ def sample_pagerank(corpus, damping_factor, n):
     接下来每一个sample 则需要基于之前sample的 transition_model的基础上生成 (这个就是上面的transition_model函数产生)
 
     """
+
+
+
     raise NotImplementedError
 
 
