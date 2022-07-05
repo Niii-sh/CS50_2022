@@ -93,14 +93,14 @@ def transition_model(corpus, page, damping_factor):
     # 接下来 就是用到那个公式 PR(p) = (1-d)/N + d ∑PR(i)/Numlinks(i)
     # 如果当前page 没有链接到其他页面 那么 ∑ 这一块就没有了 其概率就是前面(1-d)/N 这一部分
     if num_links == 0:
-        page_prob = (1-damping_factor)/num_pages
+        page_prob = (1 - damping_factor) / num_pages
         # 建立当前page 可能到达该corpus 中所有page的概率分布 (没有链接 视为到达其他任何page的概率相同)
         for pageX in corpus:
             distribution[pageX] = page_prob
     else:
-        page_prob = (1-damping_factor)/num_links
+        page_prob = (1 - damping_factor) / num_links
         # 根据公式 有链接情况下的 PR(i) 就是这个
-        link_prob = damping_factor/num_links + page_prob
+        link_prob = damping_factor / num_links + page_prob
         for pageX in corpus:
             # 如果该链接的页面 不在该corpus中 那么访问的概率为 1-d的那种情况 即page_prob
             if pageX not in corpus:
@@ -108,6 +108,10 @@ def transition_model(corpus, page, damping_factor):
             # 否则为PR(i) 的情况
             else:
                 distribution[pageX] = page_prob
+
+    if sum(distribution) is not 1:
+        print("概率分布之和 非1")
+        raise exit()
 
     return distribution
 
@@ -127,11 +131,49 @@ def sample_pagerank(corpus, damping_factor, n):
     第一个sample 随机选择一个page 生成
     接下来每一个sample 则需要基于之前sample的 transition_model的基础上生成 (这个就是上面的transition_model函数产生)
 
+    return an estimated PageRank for each page
+    总的来说 sample_pagerank 返回当前corpus 中所有page的PageRank估计
+    这个sample_rank 其实就是random surfer model 的完全实现
     """
 
+    # 用于存储 sample的PageRank值
+    sample_PR = dict()
 
+    # 初始化所有page 的 pageRank值
+    for page in corpus:
+        sample_PR[page] = 0
 
-    raise NotImplementedError
+    sample = None
+
+    # corpus 存储的 page 与其对应的可以link到的page集合 遍历corpus.keys()就是遍历所有的page
+    for page in corpus.keys():
+        # First sample的情况 随机选择page 开始
+        if sample is None:
+            # 字典对应的值为集合 转化为list
+            choices = list(corpus.keys())
+            sample = random.choice(choices)
+            # 第一个节点值 +1
+            sample_PR[sample] = 1
+        # 非First sample的情况 则基于前一个 sample的transition_model 选择page
+        else:
+            samples = transition_model(corpus, page, damping_factor)
+            choices = list(samples)
+            weights = list()
+            for prob in choices:
+                weights.append(prob)
+            sample = random.choices(choices, weights).pop()
+            sample_PR[sample] += 1
+
+    # 遍历完成后 加所有值转为概率 即可
+    for node in sample_PR:
+        node = node / n
+
+    # 这里小数点精确到5位 是因为specification 里面说最终返回的PageRank值的精确度应该在0.01之内
+    if round(sum(sample_PR.values()), 5) is not 1:
+        print("PageRank 概率之和非1")
+        raise exit()
+
+    return sample_PR
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -148,7 +190,27 @@ def iterate_pagerank(corpus, damping_factor):
     3.重复2 知道PageRank改变值 小于0.01
 
     返回 一个字典包含每个corpus中的page的PageRank(通过) 其总和为1
+
+    这个其实就是总的函数 需要完成对于所有sample的PageRank估计
     """
+    # 最终返回的结果 每个page及其对应的PageRank
+    iterate_PR = dict()
+
+    num_pages = len(corpus)
+    # 对每个page的pageRank 赋初始值
+    for page in corpus:
+        iterate_PR[page] = 1/num_pages
+
+    # 最终要求其改变值不超过 0.01
+    change = 1
+
+    # 在现有的rank值基础上 不断通过公式 即sample_rank去计算新的rank值 直到其改变值小于0.01
+    while change>=0.01:
+        change = 0
+        previous_state = iterate_PR.copy()
+        for page in iterate_PR:
+            sample_pagerank()
+
     raise NotImplementedError
 
 
