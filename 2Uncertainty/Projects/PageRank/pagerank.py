@@ -109,10 +109,6 @@ def transition_model(corpus, page, damping_factor):
             else:
                 distribution[pageX] = page_prob
 
-    if sum(distribution) is not 1:
-        print("概率分布之和 非1")
-        raise exit()
-
     return distribution
 
 
@@ -137,7 +133,7 @@ def sample_pagerank(corpus, damping_factor, n):
     """
 
     # 用于存储 sample的PageRank值
-    sample_PR = dict()
+    sample_PR = {}
 
     # 初始化所有page 的 pageRank值
     for page in corpus:
@@ -146,32 +142,24 @@ def sample_pagerank(corpus, damping_factor, n):
     sample = None
 
     # corpus 存储的 page 与其对应的可以link到的page集合 遍历corpus.keys()就是遍历所有的page
-    for page in corpus.keys():
+    for page in range(n):
         # First sample的情况 随机选择page 开始
         if sample is None:
             # 字典对应的值为集合 转化为list
             choices = list(corpus.keys())
             sample = random.choice(choices)
             # 第一个节点值 +1
-            sample_PR[sample] = 1
+            sample_PR[sample] += 1
         # 非First sample的情况 则基于前一个 sample的transition_model 选择page
         else:
-            samples = transition_model(corpus, page, damping_factor)
-            choices = list(samples)
-            weights = list()
-            for prob in choices:
-                weights.append(prob)
+            next_sample_prob = transition_model(corpus, sample, damping_factor)
+            choices = list(next_sample_prob.keys())
+            weights = [next_sample_prob[key] for key in choices]
             sample = random.choices(choices, weights).pop()
             sample_PR[sample] += 1
 
     # 遍历完成后 加所有值转为概率 即可
-    for node in sample_PR:
-        node = node / n
-
-    # 这里小数点精确到5位 是因为specification 里面说最终返回的PageRank值的精确度应该在0.01之内
-    if round(sum(sample_PR.values()), 5) is not 1:
-        print("PageRank 概率之和非1")
-        raise exit()
+    sample_PR = {key: value / n for key, value in sample_PR.items()}
 
     return sample_PR
 
@@ -191,27 +179,50 @@ def iterate_pagerank(corpus, damping_factor):
 
     返回 一个字典包含每个corpus中的page的PageRank(通过) 其总和为1
 
-    这个其实就是总的函数 需要完成对于所有sample的PageRank估计
+    这个其实和sample_pagerank 差不多 不过这些直接计算的是整个corpus
     """
     # 最终返回的结果 每个page及其对应的PageRank
-    iterate_PR = dict()
+    iterate_PR = {}
 
     num_pages = len(corpus)
     # 对每个page的pageRank 赋初始值
     for page in corpus:
-        iterate_PR[page] = 1/num_pages
+        iterate_PR[page] = 1 / num_pages
 
     # 最终要求其改变值不超过 0.01
     change = 1
 
-    # 在现有的rank值基础上 不断通过公式 即sample_rank去计算新的rank值 直到其改变值小于0.01
-    while change>=0.01:
-        change = 0
-        previous_state = iterate_PR.copy()
-        for page in iterate_PR:
-            sample_pagerank()
+    iterations = 1
+    iter
 
-    raise NotImplementedError
+    # 在现有的rank值基础上 不断通过公式 即sample_rank去计算新的rank值 直到其改变值小于0.01
+    while change >= 0.1:
+        change = 0
+        # 保存之前的状态 用于计算之后的change 改变量
+        previous_state = iterate_PR.copy()
+        # 不断通过 公式 在已有pagerank 基础上不断计算新的pagerank
+        for page in iterate_PR:
+            parents = [link for link in corpus if page in corpus[link]]
+            first = ((1 - damping_factor) / num_pages)
+            second = []
+            if len(parents) != 0:
+                for parent in parents:
+                    num_links = len(corpus[parent])
+                    val = previous_state[parent] / num_links
+                    second.append(val)
+
+            second = sum(second)
+            iterate_PR[page] = first + (damping_factor + second)
+            new_change = abs(iterate_PR[page] - previous_state[page])
+
+            if change < new_change:
+                change = new_change
+        iterations += 1
+
+    dictsum = sum(iterate_PR.values())
+    iterate_PR = {key: value / dictsum for key, value in iterate_PR.items()}
+
+    return iterate_PR
 
 
 if __name__ == "__main__":
