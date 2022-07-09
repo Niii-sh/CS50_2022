@@ -101,12 +101,68 @@ function AC-3(csp):
             Enqueue(queue, (Z,X))
     return true
 ```
+## Backtracking Search
+    宽泛来讲 就是回溯
+将 constraint satisfaction 视为一个 search problem 来解决则有:
+- Initial state: empty assignment (all variables don’t have any values assigned to them).
+    初始状态: 空集 即不给变量赋值
+- Actions: add a {variable = value} to assignment; that is, give some variable a value.
+- Transition model: shows how adding the assignment changes the assignment. 
+There is not much depth to this: the transition model returns the state that includes the assignment following the latest action.
+    Transition model: 在解决constraint satisfaction的问题中 transition model返回的应该是最近的action执行后的状态
+- Goal test: check if all variables are assigned a value and all constraints are satisfied.
+    检查每个变量是否已被赋值 以及是否满足约束条件
+- Path cost function: all paths have the same cost. As we mentioned earlier, 
+as opposed to typical search problems, optimization problems care about the solution and not the route to the solution.
+    所有路径的cost相同 constraint satisfaction问题只关心结果 不关注获得结果的过程消耗
 
+```
+function Backtrack(assignment, csp): 
+    if assignment complete:
+        return assignment
+    var = Select-Unassigned-Var(assignment, csp)
+    for value in Domain-Values(var, assignment, csp):
+        if value consistent with assignment:
+            add {var = value} to assignment
+            result = Backtrack(assignment, csp)
+            if result ≠ failure:
+                return result
+            remove {var = value} from assignment
+    return failure
+   
+```
+### Inference
+    对于backtracking 算法进一步改进
+核心思想始终维护 arc-consistency 即 Maintaining Arc-Consistency algorithm
+即在backtracking 每次进行赋值的时候都会调用 AC-3 algorithm 来维护 arc-consistency 
+从而可以减少后续无效的赋值尝试(因为在backtracking search中很有可能你赋的那个值是完全无效的 即在后续过程违背了arc-consistency)
+```
+function Backtrack(assignment, csp):
+    if assignment complete:     # 如果赋值已经完成 则直接返回 
+        return assignment
+    var = Select-Unassigned-Var(assignment, csp)
+    for value in Domain-Values(var, assignment, csp):
+        if value consistent with assignment:
+            add {var = value} to assignment                 # 优化就在这两段
+            inferences = Inference(assignment, csp)         # 将合法值加入后 通过Inference(...) 即调用AC-3去维护了加入新值后的arc-consistency 
+            if inferences ≠ failure:
+                add inferences to assignment
+            result = Backtrack(assignment, csp)
+            if result ≠ failure:
+                return result
+        remove {var = value} and inferences from assignment
+    return failure
+```
+#### Minimum Remaining Values (MRV) 
+    在以上基础还可以进一步优化 上面的算法在选择变量进行赋值这一步是完全随机 但可以通过启发函数的方式 优化这个选择 从而进一步提高效率
+    这个函数就是MRV
+总的来说 就是两点:
+1. 未确定的变量中 优先选取可选择值域范围最小的
+2. 如果未确定的变量中 每个变量的值域均相同 则有优先选择弧(arc) 最多的那个变量
 
-
-
-
-
+#### Least Constraining Values
+    也是一种启发函数
+总的来说就是 在对未确定变量赋值时 尽量选取对其他未确定变量影响小的值
 
 
 
