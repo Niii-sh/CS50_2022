@@ -27,3 +27,34 @@ weights {w1 , w2 , w3}
 将所有输入值 与其权值相乘 然后根据给定的函数即可判断出结果
 1. hard threshold 的情况下 (和间断函数差不多) 那么所得值就只能是 0 或 1
 2. soft threshold 的情况下 (正常单调不减函数 从 0 - 1) 就可以获取 0 1 中间值 判断这个值是更接近0 还是 1
+
+## Support Vector Machines 
+    用一组额外的向量组 去确定数据分类时的边界   因为二维空间中 两团不同的数据之间的分界线可以有无数条 但其中是有最优解的
+    Maximum Margin Separator : 这种分界方法会与每组数据都保持最大距离 从而新加入变量进行判断时 可以有最为公平的结果
+
+# Regression
+    根据现有数据 根据一个h 去尝试估计现有行为f 生成一条线 依据现有的输入预测其输出
+## Loss function
+    Regression 最重要其实就是 h 即 hypothesis function 因为整条线就是依据这个h生成的
+    所以评估h 的性能就非常重要 也就是用到 loss function 去进行评估
+loss function 有很多种 比如说 将预测值 与实际值相比较 如果错误 则加入 function 
+0-1 Loss Function
+可以用于classification 问题中 
+```
+L(actual, predicted):
+    0 if actual = predicted
+    1 otherwise
+```
+总的来说 L 只能返回两个值 true false 即预测值是否正确 适用于一些 只有两种情况(离散)的问题 比如说 今天是否下雨 那么只有结论只有 是与不是
+但有时要解决一些连续变量的问题 比如说 实际收益为1000 而预计可能为2000 5000 虽然2000 5000都不是结果 但显然2000 要更符合要求一些 这两个值显然是不同的
+```
+L₁: L(actual, predicted) = |actual - predicted|
+L₂: L(actual, predicted) = (actual - predicted)²
+```
+L1 返回差值的绝对值 
+L2 返回差值的绝对值的平方 相当于将放大了偏差值
+
+## Overfitting
+    过度拟合
+生成的曲线过度贴合数据 表现loss function很小甚至为0 但是这样的所生成曲线在面对新数据时可能会出现差错
+
