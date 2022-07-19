@@ -77,3 +77,53 @@ cost(h) = loss(h) + λcomplexity(h)  (这里 官方给出的 h 是 hypothesis �
 第3轮: 1 3 4 train 2 test
 .....
 然后最后根据不同算法 测试后 预测数据的 正确 和 错误数量 决定使用哪种算法
+
+## Reinforcement Learning
+    Supervised Learning 主要依赖于所输入的数据进行学习 Reinforcement 是通过是一种反馈机制 对于agent 的行为进行反馈(比如 +1 -1)
+![img.png](img.png)
+Environment 为 agent 提供一个初始状态 然后agent 执行一个action(可以理解为操作) 其实就是状态转移 
+然后 environment 根据这个action 返回一个新的 state 以及 reward (正反馈 那么这个action 以后出现的可能性就越大 负反馈则反之)
+整个有点状态机的感觉
+
+## Markov Decision Processes
+Reinforcement Learning 可以看作是一种 Markov decision process
+有以下基本属性:
+- Set of states S
+- Set of actions Actions(S)
+- Transition model P(s’ | s, a)
+- Reward function R(s, a, s’)
+比如在寻路问题中 如果agent 走到障碍物 则返回 负反馈 这样多次后 agent 就会学会什么状态下可能会遇到障碍物 从而可以学会避开障碍物
+
+## Q-Learning
+    Model-free learning is when an AI can directly derive an optimal policy from its
+    iteractions with the environment without needing to create a model beforehadd
+    Q learning is a model-free technique that can be used to find the optimal action-selection 
+    policy using a Q function
+    Q Learning 是一种  AI 可以直接从与环境的交互中获得结果 而无需事先建立模型 使用Q function 去获取最优解
+
+- Q(s,a) : 输出 在state s 中进行 action a 后的估计值
+当action 进行 以及收到 reward后
+  1. 在当前的reward 和 未来 reward 的基础上估计 Q(s,a) 就是计算其结果
+  2. 基于旧的 Q(s,a) 估计值 以及 新的估计值的基础上 更新 Q(s,a)
+Q(s, a) ⟵ Q(s, a) + α(new value estimate - Q(s, a))
+对于 Q(s,a) 的更新 等价于 原Q(s,a) 基础上加上 α * (新旧Q(s,a)估计值之间的区别)  
+- 当 α = 1 时相当于 新的Q(s,a) 直接取代了原Q(s,a)
+- 当 α = 0 时 Q(s,a) 永远不会被更新
+新的Q(s,a)的估计值 又被视作 reward(r)与 新的估计值的累加和 新的状态必定会受上到上一次action操作的影响 所以在这个过程不断将可以带来 high reward
+的 action 加入状态 所以这样的话 我们对action 性能的估计就不仅仅局限于当前所得到reward 还要考虑当前这步会在未来所带来的reward
+因此就可得到下列公式
+ ![img_1.png](img_1.png)
+
+### Explore vs. Exploit
+    The exploration vs exploitation dilemma is exemplified by the question of whether 
+    an AI should trust the learnt values of Q enough to select actions based on it or try other
+    actions hoping that might better reward
+这个问题的场景大概是这样
+有A B 两个点位  agent 访问A则可以固定获得 +1  而访问有 90%的概率-1 却有10%的概率+100
+所以这样就会产生问题 因为如果前几次访问 agent 均是从A 中+1 而从B 中-1 
+那么根据此前的公式 agent就会越来越倾向于每次都走相同的路线访问A 并且永远无法获得那个更好的结果 其最后的结果也会产生误差
+
+1. 为解决上述问题 最直接的思路 就是 有的时候要不依赖公式 而随机做出选择 则仍有可能获得更优解
+即 ε (epsilon) greedy 其中ε 表示随机移动的可能性
+2. 另一种思路就是并非每次移动都直接给出反馈 而是根据最终的结果给出反馈 (比如 摆盘子的游戏 因为这游戏也只有最终结果的反馈性才比较明显 只有当分出胜负再返回reward)
+
