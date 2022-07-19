@@ -58,3 +58,22 @@ L2 返回差值的绝对值的平方 相当于将放大了偏差值
     过度拟合
 生成的曲线过度贴合数据 表现loss function很小甚至为0 但是这样的所生成曲线在面对新数据时可能会出现差错
 
+## Regularization
+    用于避免overfitting
+    在对数据一些进行预测的时候 上述的几种ML(regression/ K-nearest neighbors /support vector Machine)方法都是可以使用 
+    但是不同算法 实际运用的时候性能是不一样的 所以需要一些方法取判断这些算法的性能 也就是下面的这些概念
+cost(h) = loss(h) + λcomplexity(h)  (这里 官方给出的 h 是 hypothesis 其实就把它理解成一个函数好了)
+λ 为一个常量 λ 越大则 complexity(h) 对最终结果的影响越大
+### Holdout Cross Validation
+将数据分为 两部分 training set  test set 
+在training set中运行 算法 然后将其预测值 与 test set 的数据比较
+### k-Fold Cross-Validation
+总的来说 Cross Validation 的核心就是将数据 分块 一部分用于train 另一部分用于test
+当然这就会有很多分法 也就会影响到时间和效率
+以 k = 4 为例 那么 k-Fold Cross-Validation 就是
+将数据分为 4 块 
+第1轮: 1 2 3 train 4 test
+第2轮: 1 2 4 train 3 test
+第3轮: 1 3 4 train 2 test
+.....
+然后最后根据不同算法 测试后 预测数据的 正确 和 错误数量 决定使用哪种算法
