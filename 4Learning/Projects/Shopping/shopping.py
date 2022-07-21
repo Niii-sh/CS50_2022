@@ -58,6 +58,11 @@ def load_data(filename):
 
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
+
+    总的来说 这个函数的主要功能就是 载入数据然后对数据进行转化 因为  nearest-neighbor classifier 对数据是有要求的
+    evidence : 就是传入的和user相关的所有数据 要根据要求将其转换为相应的类型 int float
+    label : int 根据顾客最后有没有购买为 1 或 0 其实就是最后一列Revenue
+    所以总的操作也很简单 就是遍历csv 1-16数据根据要求封装到 evidence 里面 17列 封装到label里面 然后返回即可
     """
     raise NotImplementedError
 
