@@ -1,5 +1,7 @@
 import csv
 import sys
+# pandas 是一个用于数据分析的库 读csv数据进行操作的时候会比较方便
+import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -8,7 +10,6 @@ TEST_SIZE = 0.4
 
 
 def main():
-
     # Check command-line arguments
     if len(sys.argv) != 2:
         sys.exit("Usage: python shopping.py data")
@@ -64,15 +65,59 @@ def load_data(filename):
     label : int 根据顾客最后有没有购买为 1 或 0 其实就是最后一列Revenue
     所以总的操作也很简单 就是遍历csv 1-16数据根据要求封装到 evidence 里面 17列 封装到label里面 然后返回即可
     """
-    raise NotImplementedError
 
+    # 将用户访问时的月份 转换为数字
+    data = pd.read_csv('shopping.csv', header=0)
+    d = {
+        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'June': 5,
+        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+    }
+
+    data.Month = data.Month.map(d)
+
+    # 将是否是否返回访问者信息的判断变量 VisitorType 转换为boolean值
+    data.VisitorType = data.VisitorType.map(lambda x: 1 if x == 'Returning_Visitor' else 0)
+
+    # 将是否周末访问的变量转换为 boolean值
+    data.Weekend = data.Weekend.map(lambda x: 1 if x == True else 0)
+
+    # 将消费者最终是否消费的变量转换为 boolean值
+    data.Revenue = data.Revenue.map(lambda x: 1 if x == True else 0)
+
+    # 将需要用 int 和 float 的存储的变量存入 数组 方便后续检查时 进行转换
+    # 具体直接去上面的要求中去看即可
+    ints = ['Administrative','Informational','ProductRelated','OperatingSystems','Browser','Region','TrafficType',]
+    floats = ['Administrative_Duration','Informational_Duration','ProductRelated_Duration','BounceRates','ExitRates',
+              'PageValues','SpecialDay']
+
+    for value in ints:
+        if data[value].dtype != 'int64':
+            data = data.astype({value:'int64'})
+
+    for value in floats:
+        if data[value].dtype != 'float64':
+            data = data.astype({value : 'float'})
+
+    evidence = data.iloc[:,:-1].values.tolist()
+    labels = data.iloc[:,-1].values.tolist()
+
+    return (evidence,labels)
 
 def train_model(evidence, labels):
     """
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
+
+    使用 k-nearest neighbor 算法对模型进行训练
     """
-    raise NotImplementedError
+
+    # 直接调用 sklearn库中的函数 创建 classifier
+    model = KNeighborsClassifier(n_neighbors=1)
+
+    # 训练模型
+    model.fit(evidence,labels)
+
+    return model
 
 
 def evaluate(labels, predictions):
@@ -89,9 +134,35 @@ def evaluate(labels, predictions):
     `specificity` should be a floating-point value from 0 to 1
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
-    """
-    raise NotImplementedError
 
+    将实际的数据与预测的数据相比较 从而计算出该模型的性能
+    sensitivity(正确识别的数据种类所占比例) specificity(错误识别的数据种类所占比例) 两个衡量性能指标
+    actual positive 是分类目标且正确识别的
+    actual negative 非分类目标但且没有被识别的
+    说实话这两个概念有些奇怪 我不知道为啥不直接叫 true positive  true negative
+    """
+
+    # 获取 labels 中 actual positives 的数量
+    positives = labels.count(1)
+    # 获取 labels 中 actual negatives 的数量
+    negatives = labels.count(0)
+
+
+    sens = 0
+    spec = 0
+
+    for label , pred in zip(labels,predictions):
+        if label == 1:
+            if label == pred:
+                sens+=1
+        else:
+            if label == pred:
+                spec+=1
+
+    sensitivity = sens / positives
+    specificity = spec / negatives
+
+    return  (sensitivity,specificity)
 
 if __name__ == "__main__":
     main()
